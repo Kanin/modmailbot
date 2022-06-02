@@ -255,7 +255,7 @@ const validate = ajv.compile(schema);
 const configIsValid = validate(config);
 
 if (! configIsValid) {
-  console.error("");
+  console.error("----------");
   console.error("NOTE! Issues with configuration:");
   for (const error of validate.errors) {
     if (error.params.missingProperty) {
@@ -264,19 +264,19 @@ if (! configIsValid) {
       console.error(`- The "${error.dataPath.slice(1)}" option ${error.message}`);
     }
   }
-  console.error("");
+  console.error("----------");
   console.error("Please restart the bot after fixing the issues mentioned above.");
-  console.error("");
+  console.error("----------");
   process.exit(1);
 }
 
 if (config.token == "REPLACE_WITH_TOKEN" || config.mainServerId == "REPLACE_WITH_MAIN_SERVER_ID" || config.inboxServerId == "REPLACE_WITH_INBOX_SERVER_ID" || config.logChannelId == "REPLACE_WITH_LOG_CHANNEL_ID") {
-  console.error("")
+  console.error("----------")
   console.error("Required fields are not set in config.ini!")
   console.error("For extensive configuration please refer to https://github.com/Kanin/modmailbot/blob/master/docs/configuration.md")
-  console.error("");
+  console.error("----------");
   console.error("Please restart the bot after filling in the config.ini file!");
-  console.error("");
+  console.error("----------");
   process.exit(1);
 }
 
