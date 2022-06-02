@@ -270,6 +270,16 @@ if (! configIsValid) {
   process.exit(1);
 }
 
+if (config.token == "REPLACE_WITH_TOKEN" || config.mainServerId == "REPLACE_WITH_MAIN_SERVER_ID" || config.inboxServerId == "REPLACE_WITH_INBOX_SERVER_ID" || config.logChannelId == "REPLACE_WITH_LOG_CHANNEL_ID") {
+  console.error("")
+  console.error("Required fields are not set in config.ini!")
+  console.error("For extensive configuration please refer to https://github.com/Kanin/modmailbot/blob/master/docs/configuration.md")
+  console.error("");
+  console.error("Please restart the bot after filling in the config.ini file!");
+  console.error("");
+  process.exit(1);
+}
+
 console.log("Configuration ok!");
 
 /**
