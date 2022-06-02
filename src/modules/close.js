@@ -44,7 +44,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
       await thread.close(false, thread.scheduled_close_silent);
 
-      await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) was closed as scheduled by ${thread.scheduled_close_name}`);
+      await sendCloseNotification(thread, `Modmail thread **#${thread.thread_number}** with <@!${thread.user_id}> \`[${thread.user_name}]\` was closed as scheduled by ${thread.scheduled_close_name}`);
     }
   }
 
@@ -145,7 +145,7 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     await thread.close(suppressSystemMessages, silentClose);
 
-    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) was closed by ${closedBy}`);
+    await sendCloseNotification(thread, `Modmail thread **#${thread.thread_number}** with <@!${thread.user_id}> \`[${thread.user_name}]\` was closed by ${closedBy}`);
   }, {
     options: [
       { name: "silent", shortcut: "s", isSwitch: true },
@@ -169,6 +169,6 @@ module.exports = ({ bot, knex, config, commands }) => {
 
     await thread.close(true);
 
-    await sendCloseNotification(thread, `Modmail thread #${thread.thread_number} with ${thread.user_name} (${thread.user_id}) was closed automatically because the channel was deleted`);
+    await sendCloseNotification(thread, `Modmail thread **#${thread.thread_number}** with <@!${thread.user_id}> \`[${thread.user_name}]\` was closed automatically because the channel was deleted`);
   });
 };
