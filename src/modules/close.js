@@ -134,7 +134,7 @@ module.exports = ({ bot, knex, config, commands }) => {
       }
 
       // Regular close
-      closedBy = msg.author.username;
+      closedBy = `<@!${msg.author.id}> \`[${msg.author.name}#${msg.author.discriminator}]\``;
     }
 
     // Send close message (unless suppressed with a silent close)
