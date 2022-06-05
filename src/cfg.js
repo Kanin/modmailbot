@@ -203,14 +203,14 @@ const ajv = new Ajv({
  * @returns void
  */
 function exitWithConfigurationErrors(errors) {
-  console.error("");
+  console.error("----------");
   console.error("NOTE! Issues with configuration:");
   for (const error of errors) {
     console.error(`- ${error}`);
   }
-  console.error("");
+  console.error("----------");
   console.error("Please restart the bot after fixing the issues mentioned above.");
-  console.error("");
+  console.error("----------");
 
   process.exit(1);
 }
@@ -276,7 +276,7 @@ const configIsValid = validate(config);
 if (! configIsValid) {
   const errors = validate.errors.map(error => {
     if (error.params.missingProperty) {
-      return `Missing required option: "${error.params.missingProperty.slice(1)}"`;
+      return `Missing required option: "${error.params.missingProperty}"`;
     } else {
       return `The "${error.instancePath.slice(1)}" option ${error.message}. (Is currently: ${typeof config[error.instancePath.slice(1)]})`;
     }
@@ -291,6 +291,16 @@ if (config.statusType === "streaming") {
       "When statusType is set to \"streaming\", statusUrl must be set to a valid Twitch channel URL, such as https://www.twitch.tv/Dragory",
     ]);
   }
+}
+
+if (config.token === "REPLACE_WITH_TOKEN" || config.mainServerId === "REPLACE_WITH_MAIN_SERVER_ID" || config.inboxServerId === "REPLACE_WITH_INBOX_SERVER_ID" || config.logChannelId === "REPLACE_WITH_LOG_CHANNEL_ID") {
+  console.error("----------")
+  console.error("Required fields are not set in config.ini!")
+  console.error("For extensive configuration please refer to https://github.com/Kanin/modmailbot/blob/master/docs/configuration.md")
+  console.error("----------");
+  console.error("Please restart the bot after filling in the config.ini file!");
+  console.error("----------");
+  process.exit(1);
 }
 
 console.log("Configuration ok!");

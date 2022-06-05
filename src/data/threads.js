@@ -70,13 +70,6 @@ async function findOpenThreadByUserId(userId) {
   return (thread ? new Thread(thread) : null);
 }
 
-function getHeaderGuildInfo(member) {
-  return {
-    nickname: member.nick || member.user.username,
-    joinDate: humanizeDuration(Date.now() - member.joinedAt, {largest: 2, round: true})
-  };
-}
-
 /**
  * @typedef CreateNewThreadForUserOpts
  * @property {boolean} [quiet] If true, doesn't ping mentionRole
@@ -262,47 +255,21 @@ async function createNewThreadForUser(user, opts = {}) {
     // Post some info to the beginning of the new thread
     const infoHeaderItems = [];
 
-    // Account age
-    const accountAge = humanizeDuration(Date.now() - user.createdAt, {largest: 2, round: true});
-    infoHeaderItems.push(`ACCOUNT AGE **${accountAge}**`);
+    // Account info
+    const createdAt = humanizeDuration(Date.now() - user.createdAt, {units: ["y", "mo", "w", "d"], round: true});
+    infoHeaderItems.push("__**User:**__");
+    infoHeaderItems.push(`**Name:** <@!${user.id}> \`[${user.username}#${user.discriminator}]\``)
+    infoHeaderItems.push(`**Created:** ${createdAt} ago`)
 
-    // User id (and mention, if enabled)
-    if (config.mentionUserInThreadHeader) {
-      infoHeaderItems.push(`ID **${user.id}** (<@!${user.id}>)`);
-    } else {
-      infoHeaderItems.push(`ID **${user.id}**`);
-    }
-
-    let infoHeader = infoHeaderItems.join(", ");
-
-    // Guild member info
     for (const [guildId, guildData] of userGuildData.entries()) {
-      const {nickname, joinDate} = getHeaderGuildInfo(guildData.member);
-      const headerItems = [
-        `NICKNAME **${utils.escapeMarkdown(nickname)}**`,
-        `JOINED **${joinDate}** ago`
-      ];
-
-      if (guildData.member.voiceState.channelID) {
-        const voiceChannel = guildData.guild.channels.get(guildData.member.voiceState.channelID);
-        if (voiceChannel) {
-          headerItems.push(`VOICE CHANNEL **${utils.escapeMarkdown(voiceChannel.name)}**`);
-        }
-      }
-
-      if (config.rolesInThreadHeader && guildData.member.roles.length) {
-        const roles = guildData.member.roles.map(roleId => guildData.guild.roles.get(roleId)).filter(Boolean);
-        headerItems.push(`ROLES **${roles.map(r => r.name).join(", ")}**`);
-      }
-
-      const headerStr = headerItems.join(", ");
-
-      if (mainGuilds.length === 1) {
-        infoHeader += `\n${headerStr}`;
-      } else {
-        infoHeader += `\n**[${utils.escapeMarkdown(guildData.guild.name)}]** ${headerStr}`;
-      }
+      const joinedAt = humanizeDuration(Date.now() - guildData.member.joinedAt, {
+        units: ["y", "mo", "w", "d"],
+        round: true
+      });
+      infoHeaderItems.push(`**Joined:** ${joinedAt} ago`);
     }
+
+    let infoHeader = infoHeaderItems.join("\n");
 
     // Modmail history / previous logs
     const userLogCount = await getClosedThreadCountByUserId(user.id);
@@ -315,7 +282,7 @@ async function createNewThreadForUser(user, opts = {}) {
       infoHeader += `\n\nThis user has **${userNotes.length}** notes. Use \`${config.prefix}notes\` to see them.`;
     }
 
-    infoHeader += "\n────────────────";
+    infoHeader += "\n─────────────────────────────────────────────";
 
     const { message: threadHeaderMessage } = await newThread.postSystemMessage(infoHeader, {
       allowedMentions: config.mentionUserInThreadHeader ? { users: [user.id] } : undefined,
