@@ -77,6 +77,8 @@ config.dbDir = path.join(__dirname, "..", "db");
 config.logDir = path.join(__dirname, "..", "logs"); // Only used for migrating data from older Modmail versions
 
 // Load config values from environment variables
+require("dotenv").config();
+
 const envKeyPrefix = "MM_";
 let loadedEnvValues = 0;
 
@@ -149,6 +151,7 @@ if (! config.logOptions) {
   config.logOptions = {};
 }
 
+config.categoryAutomation = config.categoryAutomation || {};
 // categoryAutomation.newThreadFromGuild => categoryAutomation.newThreadFromServer
 if (config.categoryAutomation && config.categoryAutomation.newThreadFromGuild && ! config.categoryAutomation.newThreadFromServer) {
   config.categoryAutomation.newThreadFromServer = config.categoryAutomation.newThreadFromGuild;
@@ -194,6 +197,23 @@ const ajv = new Ajv({
   coerceTypes: "array",
   allowUnionTypes: true,
 });
+
+/**
+ * @param {string[]} errors
+ * @returns void
+ */
+function exitWithConfigurationErrors(errors) {
+  console.error("");
+  console.error("NOTE! Issues with configuration:");
+  for (const error of errors) {
+    console.error(`- ${error}`);
+  }
+  console.error("");
+  console.error("Please restart the bot after fixing the issues mentioned above.");
+  console.error("");
+
+  process.exit(1);
+}
 
 // https://github.com/ajv-validator/ajv/issues/141#issuecomment-270692820
 const truthyValues = ["1", "true", "on", "yes"];
@@ -253,31 +273,24 @@ ajv.addKeyword({
 
 const validate = ajv.compile(schema);
 const configIsValid = validate(config);
-
 if (! configIsValid) {
-  console.error("----------");
-  console.error("NOTE! Issues with configuration:");
-  for (const error of validate.errors) {
+  const errors = validate.errors.map(error => {
     if (error.params.missingProperty) {
-      console.error(`- Missing required option: "${error.params.missingProperty.slice(1)}"`);
+      return `Missing required option: "${error.params.missingProperty.slice(1)}"`;
     } else {
-      console.error(`- The "${error.dataPath.slice(1)}" option ${error.message}`);
+      return `The "${error.instancePath.slice(1)}" option ${error.message}. (Is currently: ${typeof config[error.instancePath.slice(1)]})`;
     }
-  }
-  console.error("----------");
-  console.error("Please restart the bot after fixing the issues mentioned above.");
-  console.error("----------");
-  process.exit(1);
+  });
+  exitWithConfigurationErrors(errors);
 }
 
-if (config.token == "REPLACE_WITH_TOKEN" || config.mainServerId == "REPLACE_WITH_MAIN_SERVER_ID" || config.inboxServerId == "REPLACE_WITH_INBOX_SERVER_ID" || config.logChannelId == "REPLACE_WITH_LOG_CHANNEL_ID") {
-  console.error("----------")
-  console.error("Required fields are not set in config.ini!")
-  console.error("For extensive configuration please refer to https://github.com/Kanin/modmailbot/blob/master/docs/configuration.md")
-  console.error("----------");
-  console.error("Please restart the bot after filling in the config.ini file!");
-  console.error("----------");
-  process.exit(1);
+const validStreamingUrlRegex = /^https:\/\/(www\.)?twitch.tv\/[a-z\d_\-]+\/?$/i;
+if (config.statusType === "streaming") {
+  if (! validStreamingUrlRegex.test(config.statusUrl)) {
+    exitWithConfigurationErrors([
+      "When statusType is set to \"streaming\", statusUrl must be set to a valid Twitch channel URL, such as https://www.twitch.tv/Dragory",
+    ]);
+  }
 }
 
 console.log("Configuration ok!");
